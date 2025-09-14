@@ -7,9 +7,22 @@ export const HeroSection = () => {
   const [searchTopic, setSearchTopic] = useState("");
   const [learnerType, setLearnerType] = useState("");
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (searchTopic.trim() && learnerType) {
-      console.log("Starting learning:", { topic: searchTopic, learnerType });
+      try {
+        await fetch("https://nityaagrawal411.app.n8n.cloud/webhook-test/c59b2543-b80c-4f8d-b3bf-c97d2cdec8eb", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            topic: searchTopic,
+            learnerType: learnerType
+          })
+        });
+      } catch (error) {
+        console.error("Failed to send data:", error);
+      }
     }
   };
 
