@@ -62,6 +62,18 @@ export const HeroSection = () => {
               Start Learning
             </Button>
           </div>
+
+          {/* Stats Section */}
+          <div className="flex justify-center items-center gap-12 pt-8 border-t border-border/50">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">50,000+</div>
+              <div className="text-sm text-muted-foreground">Active Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">94%</div>
+              <div className="text-sm text-muted-foreground">Completion Rate</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
