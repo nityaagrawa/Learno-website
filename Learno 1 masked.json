@@ -1,0 +1,464 @@
+{
+  "name": "Learno 1",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/customsearch/v1?q={{ $json.body.topic }}&key=${API_KEY}&cx=${CX}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        -432
+      ],
+      "id": "1b23cb8c-e314-4c24-bd8f-a3ad02e1b7e1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Google CSE API returns results in items[] \nconst results = items[0].json.items || []; \n// Pick first 10 links \nconst topLinks = results.slice(0, 5).map(i => ({ title: i.title, url: i.link, snippet: i.snippet, topic: $json[\"topic\"] \n  // keep topic on each item \n  })); \n// Return each link as its own item \nreturn topLinks.map(link => ({ json: link }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -432
+      ],
+      "id": "22c0bd13-4394-4c6c-b4af-bed37d5db3c6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1248,
+        -432
+      ],
+      "id": "9067998b-b786-41d0-a813-75cbaf60e97e",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "url",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -432
+      ],
+      "id": "a3e1652b-0fe6-446d-b8a3-bcbd8b1b6605",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Role: You are a senior course designer and curriculum architect. Your task is to synthesize information from multiple provided course outlines to create a comprehensive, single master course curriculum.\n\nTask: Create a detailed, structured course outline that includes all modules, sub-modules, and topics from all the provided URLs. Do not omit any topic. Combine related topics logically and eliminate duplicates, but ensure all unique content is included in the final outline.\n\nContext: The final output should be a single, cohesive course that covers all aspects of the subject found across the multiple source materials. The goal is to produce a definitive, well-organized curriculum that can be used for building a new course.\n\nFormat/Constraints:\n\nThe output must be a hierarchical list using nested headings or a numbered/bulleted list format.\n\nThe structure must follow this hierarchy: Module -> Sub-Module -> Topic -> Sub-Topic (if applicable).\n\nUse bold for Modules and Sub-Modules to make the structure clear.\n\nDo not include any introductory or concluding text; only provide the course outline itself.\n\nMake sure to merge similar topics under a single, well-named heading to avoid redundancy.\n\nReturn as JSON.\n\nHere is the task URLs - {{ $json.url }}",
+        "batching": {
+          "batchSize": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        896,
+        -432
+      ],
+      "id": "01e17128-f395-4f8f-a261-72d14991a3e4",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        976,
+        -208
+      ],
+      "id": "a251826c-76ba-4f99-94e2-e29f7571c0fd",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zmeHVnVRDxJ0t8GR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Role: You are a senior course designer and curriculum architect. Your task is to synthesize information from multiple provided course outlines to create a comprehensive, single master course curriculum.\n\nTask: Create a detailed, structured course outline that includes all modules, sub-modules, and topics from all the provided URLs. Do not omit any topic. Combine related topics logically and eliminate duplicates, but ensure all unique content is included in the final outline.\n\nContext: The final output should be a single, cohesive course that covers all aspects of the subject found across the multiple source materials. The goal is to produce a definitive, well-organized curriculum that can be used for building a new course.\n\nFormat/Constraints:\n\nThe output must be a hierarchical list using nested headings or a numbered/bulleted list format.\n\nThe structure must follow this hierarchy: Module -> Sub-Module -> Topic -> Sub-Topic (if applicable).\n\nUse bold for Modules and Sub-Modules to make the structure clear.\n\nDo not include any introductory or concluding text; only provide the course outline itself.\n\nMake sure to merge similar topics under a single, well-named heading to avoid redundancy.\nRemove course objective, pre-requisites from the concepts if any and also try to combine and club the concepts into single for each module upto 3 and not more than that.\n\nHere is your input - {{ JSON.stringify($node[\"Code in JavaScript1\"].json.courses) }}\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1696,
+        -432
+      ],
+      "id": "2b614ec2-c60f-4545-9acb-aec42f87b1cf",
+      "name": "Basic LLM Chain1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        -208
+      ],
+      "id": "d843f77c-83dc-4c86-8e18-e8b6c8983aa1",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zmeHVnVRDxJ0t8GR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all items into one object with an array\nreturn [{\n  json: {\n    courses: items.map(item => item.json)\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        -432
+      ],
+      "id": "8a112dc8-102b-467d-9135-5fbb01005d1a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: items[0].json.text (Markdown-like syllabus string)\n// Output: JSON array of { module, subtopics: [{ name, concepts[] }] }\n\nconst rawText = $input.first().json.text;\n\n// Split by lines\nconst lines = rawText.split(\"\\n\").map(l => l.trim()).filter(l => l);\n\n// Storage\nlet modules = [];\nlet currentModule = null;\nlet currentSubtopic = null;\n\nlines.forEach(line => {\n  // Module line (starts with * **Module X: ...)\n  if (line.startsWith(\"**Module \")) {\n    const moduleName = line.replace(/^(\\*+)\\s+\\*\\*(.*?)\\*\\*$/, \"$2\").trim();\n    currentModule = { module: moduleName, subtopics: [] };\n    modules.push(currentModule);\n    currentSubtopic = null;\n  }\n  // Subtopic line (starts with *   ** but not Module)\n  else if (line.startsWith(\"*   **\")) {\n    const subtopicName = line.replace(/^(\\*+)\\s+\\*\\*(.*?)\\*\\*$/, \"$2\").trim();\n    currentSubtopic = { name: subtopicName, concepts: [] };\n    currentModule?.subtopics.push(currentSubtopic);\n  }\n  // Concept line (normal * bullet under subtopic)\n  else if (line.startsWith(\"*\")) {\n    const concept = line.replace(/^\\*+/, \"\").trim();\n    if (currentSubtopic) {\n      currentSubtopic.concepts.push(concept);\n    }\n  }\n});\n\n// ... keep same parsing logic ...\n\nreturn [\n  {\n    json: {\n      modules: modules   // wrap the array inside an object\n    }\n  }\n];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        -432
+      ],
+      "id": "c9b13c7b-4bc2-444a-b154-8c5ecb9afc08",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = [];\nconst data = $input.first().json.modules;\nconst concept=[];\nfor (const module of data) {\n  \n  for (const subtopic of module.subtopics) {\n    \n    //for (const concept of subtopic.concepts) {\n      result.push({\n        json: {\n          module: module.module,\n          subtopic: subtopic.name,\n          concept: subtopic.concepts\n        }\n      });\n    \n   // }\n  }\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        -432
+      ],
+      "id": "cc236983-b49e-4fce-9609-59f42dfebf77",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/customsearch/v1?q={{ $json.subtopic }}\n&key=${API_KEY}&cx=${CX}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2720,
+        -432
+      ],
+      "id": "09fb21f4-c7b1-4f59-b88b-63c3e699287a",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "function idFromUrl(u){\n  const m = String(u).match(/[?&]v=([^&]+)/);\n  if (m) return m[1];\n  const s = String(u).match(/youtu\\.be\\/([^?&/]+)/);\n  return s ? s[1] : null;\n}\nfunction norm(s){\n  return (s||'').toLowerCase()\n    .replace(/[^a-z0-9\\s]/g,' ')\n    .replace(/\\s+/g,' ')\n    .trim();\n}\n\nconst conceptRaw = $input.first().json.queries.request[0].searchTerms || '';\nconst conceptNorm = norm(conceptRaw);\nconst itemsArr = (items[0].json.items || []).filter(Boolean);\n\nconst vids = itemsArr.map(i => ({\n  title: i.title || i.htmlTitle || '',\n  link: i.link,\n  videoId: idFromUrl(i.link || '')\n})).filter(v => v.videoId);\n\nfunction score(v){\n  const cset = new Set(conceptNorm.split(' ').filter(Boolean));\n  const tset = new Set(norm(v.title).split(' '));\n  let overlap = 0; for (const w of cset) if (tset.has(w)) overlap++;\n  return overlap;\n}\n\nconst ranked = vids.map(v => ({...v, score: score(v)}))\n                   .sort((a,b)=>b.score-a.score)\n                   .slice(0,3);\n\nif (!ranked.length) {\n  return [{\n    json: {\n      module: $json.module,\n      subtopic: $json.subtopic,\n      concept: conceptRaw,\n      conceptKey: conceptNorm,\n      noResults: true\n    }\n  }];\n}\n\n// emit top-3 with concept tags\nreturn ranked.map((v, i) => ({\n  json: {\n    module: $json.module,\n    subtopic: $json.subtopic,\n\n    // concept this video belongs to\n    concept: conceptRaw,\n    conceptKey: conceptNorm,         // normalized tag for stable joins/analytics\n\n    // video info\n    videoId: v.videoId,\n    title: v.title,\n    url: v.link,\n    score: v.score,\n    rank: i + 1                      // 1 = best match\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2944,
+        -432
+      ],
+      "id": "691280e7-f18a-4cfa-a2b4-b0cbf8e0026b",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// assumes incoming items are 1..3 per concept (after suggestStartEnd)\nconst by = new Map();\nfor (const it of items) {\n  const r = it.json;\n  if (!by.has(r.concept)) by.set(r.concept, []);\n  by.get(r.concept).push(r);\n}\nconst out = [];\nfor (const [concept, arr] of by.entries()) {\n  arr.sort((a,b)=> (b.confidence||0)-(a.confidence||0));\n  out.push({ concept, candidates: arr.slice(0,3) });\n}\nreturn out.map(x => ({ json: x }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3168,
+        -368
+      ],
+      "id": "e274c57a-43fe-44bd-ad15-c5781fa4405b",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c59b2543-b80c-4f8d-b3bf-c97d2cdec8eb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -432
+      ],
+      "id": "f12c41ae-be8e-44ed-8629-903c7cc8fa7f",
+      "name": "Webhook",
+      "webhookId": "c59b2543-b80c-4f8d-b3bf-c97d2cdec8eb"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2720,
+        -624
+      ],
+      "id": "9343276c-a970-4c47-8cad-018722f01c75",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2496,
+        -432
+      ],
+      "id": "b7c4023d-7450-4f44-86f6-10d3647d6a94",
+      "name": "Loop Over Items"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b028cc42-d4fa-4f1c-b412-381c0d05b0bc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "03c4567aceecae008f673885eb213b2fad81f1ed6b18271fee6c09cd5cb4dac8"
+  },
+  "id": "SzO4fno9818VnChA",
+  "tags": [
+    {
+      "createdAt": "2025-09-11T08:45:38.569Z",
+      "updatedAt": "2025-09-11T08:45:38.569Z",
+      "id": "tk6FDcGctTAiOz6z",
+      "name": "Trial 1"
+    },
+    {
+      "createdAt": "2025-09-11T08:45:31.475Z",
+      "updatedAt": "2025-09-11T08:45:31.475Z",
+      "id": "xAGlPZOdDx8hQwsy",
+      "name": "Learno"
+    }
+  ]
+}
